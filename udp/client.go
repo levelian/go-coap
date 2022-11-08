@@ -102,7 +102,7 @@ func Dial(target string, opts ...DialOption) (*client.ClientConn, error) {
 	if err != nil {
 		return nil, err
 	}
-	conn, ok := c.(*net.UDPConn)
+	conn, ok := c.(coapNet.UDPConni)
 	if !ok {
 		return nil, fmt.Errorf("unsupported connection type: %T", c)
 	}
@@ -142,7 +142,7 @@ func bwCreateHandlerFunc(messagePool *pool.Pool, observatioRequests *kitSync.Map
 }
 
 // Client creates client over udp connection.
-func Client(conn *net.UDPConn, opts ...DialOption) *client.ClientConn {
+func Client(conn coapNet.UDPConni, opts ...DialOption) *client.ClientConn {
 	cfg := defaultDialOptions
 	for _, o := range opts {
 		o.applyDial(&cfg)

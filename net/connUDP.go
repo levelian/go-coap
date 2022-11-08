@@ -12,13 +12,23 @@ import (
 	"golang.org/x/net/ipv6"
 )
 
+type UDPConni interface {
+	net.Conn
+	net.PacketConn
+	// WriteToUDP acts like WriteTo but takes a UDPAddr.
+	WriteToUDP(b []byte, addr *net.UDPAddr) (int, error)
+
+	// ReadFromUDP acts like ReadFrom but returns a UDPAddr.
+	ReadFromUDP(b []byte) (n int, addr *net.UDPAddr, err error)
+}
+
 // UDPConn is a udp connection provides Read/Write with context.
 //
 // Multiple goroutines may invoke methods on a UDPConn simultaneously.
 type UDPConn struct {
 	packetConn packetConn
 	network    string
-	connection *net.UDPConn
+	connection UDPConni
 	errors     func(err error)
 	closed     atomic.Bool
 }
@@ -159,7 +169,7 @@ func NewListenUDP(network, addr string, opts ...UDPOption) (*UDPConn, error) {
 }
 
 // NewUDPConn creates connection over net.UDPConn.
-func NewUDPConn(network string, c *net.UDPConn, opts ...UDPOption) *UDPConn {
+func NewUDPConn(network string, c UDPConni, opts ...UDPOption) *UDPConn {
 	cfg := defaultUDPConnOptions
 	for _, o := range opts {
 		o.applyUDP(&cfg)
